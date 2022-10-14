@@ -6,4 +6,3 @@ python-dotenv==0.20.0
 gunicorn==20.0.4
 databricks-sql-connector==2.0.2
 pyspark==3.2.1
-numpy==1.5.

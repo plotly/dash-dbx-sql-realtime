@@ -1,9 +1,10 @@
 DB_NAME = "raspberrypisim_db"
 DEVICE_TABLE_SILVER = "silver_sensors"
 DEVICE_TABLE_GOLD = "gold_sensors"
+DEVICE_TABLE_BRONZE = "bronze_sensors"
 
 SERVER_HOSTNAME = "adb-3281572069146416.16.azuredatabricks.net"
-HTTP_PATH = "sql/protocolv1/o/3281572069146416/0910-185730-rertvsfp"
+HTTP_PATH = "sql/protocolv1/o/3281572069146416/1011-134037-isxtpxz4"
 ACCESS_TOKEN = "dapi17bc1f4f2256dca0991dd24fbaceae12-3"
 
 app_description = {
@@ -14,7 +15,7 @@ app_description = {
     ],
     "texts": [
         "for simple to advanced python analytical workflows",
-        "at scale via Plotly Dash analytical web applications",
+        "at scale and in REAL TIME via Plotly Dash analytical web applications",
         "for simple to advanced python analytical workflows",
     ],
 }
