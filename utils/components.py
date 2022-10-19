@@ -6,10 +6,27 @@ import pandas as pd
 
 from utils.dbx_utils import get_new_daily_data_offline, get_new_live_data_offline
 import utils.figures as figs
+from constants import app_description
 
 # from utils.dbx_utils import get_immediate_vals, get_moving_average
 # df_live= get_moving_average()
 # df_daily = get_immediate_vals()
+
+def layout():
+    return dmc.MantineProvider(
+    withGlobalStyles=True,
+    theme={"colorScheme":"dark"},
+    children=dmc.NotificationsProvider(
+        html.Div([
+            header(header_color="#FFFFFF", header_background_color="#111014",),
+            create_text_columns(app_description, "description"),
+            graph_view(),
+            
+            dcc.Interval(id='daily-data-interval', interval = 10_000, n_intervals=0 ),
+            dcc.Interval(id='live-data-interval', interval = 1000, n_intervals=0 ),
+        ])
+    )
+)
 
 def create_text_columns(data_dict, class_name=None):
     """Create element that creates header + text column for every header and text in the list"""
@@ -137,3 +154,11 @@ def graph_view():
         ),
     ],
 )
+
+def style_text(temperature, humidity):
+    return html.Div([
+        html.Div([
+            html.Div(f"Temperature: {temperature}°C", style={"color": "#7976F7"}),
+            html.Div(f"Humidity: {humidity}%", style={"color": "#DB4C39"}),
+        ], style={"display": "flex", "justify-content": "space-between"}),
+    ])
