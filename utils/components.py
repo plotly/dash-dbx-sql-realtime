@@ -21,7 +21,7 @@ def layout():
             create_text_columns(app_description, "description"),
             graph_view(),
             
-            dcc.Interval(id='live-data-interval', interval = 1000, n_intervals=0 ),
+            dcc.Interval(id='live-data-interval', interval = 1100, n_intervals=0 ),
         ])
     )
 )
@@ -106,7 +106,7 @@ def graph_view():
 
 def style_text(temperature, humidity, time):
     return html.Div([
-        html.Div(f"Temperature: {temperature}°C", style={"color": "#DB4C39"}),
-        html.Div(f"{time} GMT", style={'color':'grey'}),
-        html.Div(f"Humidity: {humidity}%", style={"color": "#7976F7"}),
-    ], style={"display": "flex", "justify-content": "space-between", 'fontSize':42}),
+        html.Div(f"Temperature: {temperature}°C", style={"color": "#DB4C39", 'fontSize':32}),
+        html.Div(f"{time} GMT", style={'color':'grey', 'fontSize':26}),
+        html.Div(f"Humidity: {humidity}%", style={"color": "#7976F7", 'fontSize':32}),
+    ], style={"display": "flex", "justify-content": "space-between"}),

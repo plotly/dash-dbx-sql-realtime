@@ -26,9 +26,9 @@ def update_live_data(n, storage):
     return [
         dict(
             x=[[new_date], [new_date], [new_date], [new_date]],
-            y=[[new_temp], [ma_temp_avg], [new_humidity], [ma_humid_avg]],
+            y=[[ma_temp_avg], [new_temp], [ma_humid_avg], [new_humidity]],
         ), [0, 1, 2, 3], 60
-    ], components.style_text(new_temp, new_humidity, time), {"ma_temp": ma_temp, "ma_humid": ma_humid}
+    ], components.style_text(ma_temp_avg, ma_humid_avg, time), {"ma_temp": ma_temp, "ma_humid": ma_humid}
 
 if __name__ == '__main__':
     app.run_server(debug=True)
