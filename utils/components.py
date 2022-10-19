@@ -1,49 +1,15 @@
+from hashlib import new
+import dash
 from dash import html, dcc
 import dash_mantine_components as dmc
-from dash_iconify import DashIconify
-import plotly.express as px
-from utils.dbx_utils import get_bme_data
-from utils.dbx_utils import get_moving_average
-from constants import custom_color
-import dash_extensions as de
+import pandas as pd
 
+from utils.dbx_utils import get_new_daily_data_offline, get_new_live_data_offline
+import utils.figures as figs
 
-
-from utils import dbx_utils
-
-url = "https://assets10.lottiefiles.com/packages/lf20_srcvuh0h.json"
-options = dict(loop=True, autoplay=True, rendererSettings=dict(preserveAspectRatio='xMidYMid slice'))
-
-df1= get_moving_average(Temp_15s_Moving_Average=[],Temp_60s_Moving_Average=[],Humidity_15s_Moving_Average=[],Humidity_60s_Moving_Average=[],TimestampSecond=[])
-
-df = get_bme_data(TempReading=[],HumidityReading=[], EventTimestamp=[],EventDate=[])
-
-
-
-x= df.EventTimestamp
-y= df.TempReading
-a= df.HumidityReading
-b= df.EventDate
-p= df1.Temp_15s_Moving_Average
-q= df1.Temp_60s_Moving_Average
-h= df1.Humidity_15s_Moving_Average
-g= df1.Humidity_60s_Moving_Average
-
-t= df1.TimestampSecond
-
-
-
-resolution = 1000
-
-
-
-templine = px.line(df,x=x,y=y,title=f"Temperature vs Time", template='plotly_dark')
-humidityline = px.line(df, x=x, y=a, title=f"Humidity vs Time", template='plotly_dark')
-temp_magraph= px.line(df1, x=t, y=[p,q], title=f"Temperature Moving Averages", template='plotly_dark')
-hum_magraph = px.line(df1, x=t, y=[g,h],title=f"Humidity Moving Averages", template='plotly_dark')
-temp_magraph.update_xaxes(rangeslider_visible=True)
-hum_magraph.update_xaxes(rangeslider_visible=True)
-humtempscatter = px.scatter(df, x=x, y=[y,a], template='plotly_dark')
+# from utils.dbx_utils import get_immediate_vals, get_moving_average
+# df_live= get_moving_average()
+# df_daily = get_immediate_vals()
 
 def create_text_columns(data_dict, class_name=None):
     """Create element that creates header + text column for every header and text in the list"""
@@ -56,12 +22,9 @@ def create_text_columns(data_dict, class_name=None):
         className="text-columns" + (f" {class_name}" if class_name else ""),
     )
 
+def header(header_color, header_background_color="transparent"):
 
-def header(
-    app, header_color, header, subheader=None, header_background_color="transparent"
-):
-
-    logo = html.Img(src=app.get_asset_url("images/plotly-logo-dark-theme.png"))
+    logo = html.Img(src=dash.get_asset_url("images/plotly-logo-dark-theme.png"))
     dash_logo = html.A(
         logo,
         href="https://plotly.com/dash/",
@@ -69,23 +32,20 @@ def header(
         className="header-logos-left",
     )
 
-    header = html.Div(
-        [
-            html.Div(
-                [
-                    html.Div("Real-Time", style={"color": "#7976F7"}),
-                    html.Div(" Dash Apps ", style={"padding": "0px 15px"}),
-                    html.Div(" on Databricks", style={"color": "#DB4C39"}),
-                ],
-                className="header-title",
-            ),
-            html.Div(subheader, className="subheader-title"),
-        ],
+    header = html.Div([
+        html.Div(
+            [
+                html.Div("Real-Time", style={"color": "#7976F7"}),
+                html.Div(" Dash Apps on ", style={"padding": "0px 15px"}),
+                html.Div("Databricks", style={"color": "#DB4C39"}),
+            ],
+            className="header-title",
+        )],
         style={"color": header_color},
         className="header-text-middle",
     )
 
-    logo = html.Img(src=app.get_asset_url("images/databricks.png"))
+    logo = html.Img(src=dash.get_asset_url("images/databricks.png"))
     databricks_logo = html.A(
         logo,
         href="https://databricks.com/",
@@ -100,209 +60,80 @@ def header(
     )
 
 
-LEFT_TAB = html.Div(
-    [
-        # CROSS FILTER
-        dmc.Group(
-            direction="column",
-            position="center",
-            class_name="global-control",
-            children=[
-                dmc.Title("Temperature and Humidity Related Streams:"),
-                 html.Div(
-                            id='clientside-contentc',
-                            children="Soon data will be here.", 
-                            title="Time UTC", 
-                            style={'color':'white', 'fontSize':42}  
-                            ),
-                           html.Div([
-                            dcc.Store(
-                                id= 'clientside-store-datac', data={}),
-                            dcc.Interval(
-                                id='serverside-intervalc',
-                                interval= 2000, 
-                                n_intervals=0),
-                            dcc.Interval(
-                                id='clientside-intervalc',
-                                interval= 2000,
-                                n_intervals=0),
-                            ]), 
-            ],
-            
-        ),
-        # TOP 2 FIGURES
+def graph_view():
+
+    new_daily_data = []
+    for i in range(48):
+        new_daily_data.insert(0, get_new_daily_data_offline(i, generate_past_data=True))
+    df_daily = pd.DataFrame(new_daily_data, columns=["EventTimestamp", "TempReading", "HumidityReading"])
+    fig_daily = figs.fig_daily(df_daily)
+
+    new_live_data = []
+    for i in range(60):
+        new_live_data.insert(0, get_new_live_data_offline(i, generate_past_data=True))
+    df_live = pd.DataFrame(new_live_data, columns=["TimestampSecond", "Temp_15s_Moving_Average", "Temp_60s_Moving_Average"])
+    fig_live = figs.fig_live(df_live)
+
+    return html.Div(
+    className="graph-view",
+    children=[
+        # 2 FIGURES
         dmc.Grid(
             gutter="xl",
             children=[
+
+                ## left figure
                 dmc.Col(
                     span=6,
                     children=html.Div(
                         className="card",
                         children=[
-                           html.Div([
-                                dcc.Store(
-                                    id='graph_store', 
-                                    data=dict(x=x,y=y,
-                                    resolution=resolution)),
-                                dcc.Interval(
-                                    id='graph_interval',
-                                    interval = 2000, 
-                                    n_intervals = 0),
+
+                            ## figure
+                            html.Div([
                                 dcc.Graph(
-                                    id="graph",
-                                    figure=templine,
+                                    id="daily-data-graph",
+                                    figure=fig_daily,
                                     className="glow",
                                     config={"displayModeBar": False},
                                     animate=True,
                                 ),
                             ]),
+                            ## temperature-humidity information
                             html.Div(
-                            id='clientside-content',
-                            children="Soon data will be here.", 
-                            title="Temperature", 
-                            style={'color':'white', 'fontSize':42}  
+                                id='daily-data-information',
+                                style={'color':'white', 'fontSize':42}  
                             ),
-                           html.Div([
-                            dcc.Store(
-                                id= 'clientside-store-data', data={}),
-                            dcc.Interval(
-                                id='serverside-interval',
-                                interval= 1*2000, 
-                                n_intervals=0),
-                            dcc.Interval(
-                                id='clientside-interval',
-                                interval= 2000,
-                                n_intervals=0),
-                            ]),
-                        ]),
+                        ]
                     ),
+                ),
+
+                ## right figure
                 dmc.Col(
                     span=6,
                     children=html.Div(
                         className="card",
                         children=[
-                           html.Div([
-                                dcc.Store(
-                                    id='temp_magraph_store', 
-                                    data=dict(x=x,y=[p,q],
-                                    resolution=resolution)),
-                                dcc.Interval(
-                                    id='temp_magraph_interval',
-                                    interval = 1*2000, 
-                                    n_intervals = 0),
+                            ## figure
+                            html.Div([
                                 dcc.Graph(
-                                    id="temp_magraph",
-                                    figure=temp_magraph,
+                                    id="live-data-graph",
+                                    figure=fig_live,
                                     className="glow",
                                     config={"displayModeBar": False},
                                     animate=True,
                                 ),
                             ]),
-                        ]),
-                    ),
-            ],
-        ),
-        dmc.Group(
-            direction="column",
-            position="center",
-            class_name="global-control",
-            children=[
-                dmc.Title(""),
-            ],
-        ),
-        # TOP 2 FIGURES
-        dmc.Grid(
-            gutter="xl",
-            children=[
-                dmc.Col(
-                    span=6,
-                    children=html.Div(
-                        className="card",
-                        children=[
-                           html.Div([
-                                dcc.Store(
-                                    id='hgraph_store', 
-                                    data=dict(x=x,y=a,
-                                    resolution=resolution)),
-                                dcc.Interval(
-                                    id='hgraph_interval',
-                                    interval = 1*2000, 
-                                    n_intervals = 0),
-                                dcc.Graph(
-                                    id="hgraph",
-                                    figure=humidityline,
-                                    className="glow",
-                                    config={"displayModeBar": False},
-                                    animate=True,
-                                ),
-                            ]),
+                            
+                            ## current-time information
                             html.Div(
-                            id='clientside-contentb',
-                            children="Soon data will be here.", 
-                            title="Humidity", 
-                            style={'color':'white', 'fontSize':42}  
+                                id='live-data-information',
+                                style={'color':'#7976F7', 'fontSize':42, 'textAlign':'center'}  
                             ),
-                           html.Div([
-                            dcc.Store(
-                                id= 'clientside-store-datab', data={}),
-                            dcc.Interval(
-                                id='serverside-intervalb',
-                                interval= 1*2000, 
-                                n_intervals=0),
-                            dcc.Interval(
-                                id='clientside-intervalb',
-                                interval= 2000,
-                                n_intervals=0),
-                            ]),
-                        ]),
+                        ]
                     ),
-                  dmc.Col(
-                    span=6,
-                    children=html.Div(
-                        className="card",
-                        children=[
-                           html.Div([
-                                dcc.Store(
-                                    id='hum_magraph_store', 
-                                    data=dict(x=x,y=[g,h],
-                                    resolution=resolution)),
-                                dcc.Interval(
-                                    id='hum_magraph_interval',
-                                    interval = 1*2000, 
-                                    n_intervals = 0),
-                                dcc.Graph(
-                                    id="hum_magraph",
-                                    figure=hum_magraph,
-                                    className="glow",
-                                    config={"displayModeBar": False},
-                                    animate=True,
-                                ),
-                            ]),
-                        ]),
-                    ),
+                ),
             ],
         ),
     ],
-    className="left-tab",
 )
-
-RIGHT_TAB = html.Div(
-    [
-        # CROSS FILTER
-        
-    ],
-    className="right-tab",
-)
-    
-
-def notification_line(text):
-    return dmc.Notification(
-        id="notify-line",
-        title="Daily Fitness Data",
-        message=[text],
-        disallowClose=True,
-        radius="xl",
-        icon=[DashIconify(icon="simple-icons:databricks", color="#DB4C39", width=128)],
-        action="show",
-    )
-

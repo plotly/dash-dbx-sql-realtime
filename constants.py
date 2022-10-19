@@ -20,12 +20,5 @@ app_description = {
     ],
 }
 
-
-custom_color = {
-    "sex": ["#DB4C39", "#39c8db"],
-    "Smoker": ["rgb(0, 0, 0)", "#DB4C39"],
-    "cholesterol": ["rgb(48, 255, 69)", "rgb(252, 50, 50)"],
-    "bloodpressure": ["rgb(252, 50, 50)", "rgb(48, 255, 69)"],
-}
-
-
+import datetime as dt
+app_start_ts = dt.datetime.now() 
