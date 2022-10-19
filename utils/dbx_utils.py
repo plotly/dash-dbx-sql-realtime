@@ -11,6 +11,8 @@ from constants import (
     app_start_ts
 )
 
+random.seed(42)
+
 def get_immediate_vals():
     connection0 = sql.connect(
         server_hostname=SERVER_HOSTNAME,
@@ -43,25 +45,24 @@ def get_moving_average():
     connection1.close()
     return df1
 
-
-def get_new_daily_data_offline(i, generate_past_data=False):
-    if generate_past_data:
-        timestamp_now = datetime.datetime.now() - datetime.timedelta(hours=12*i)
-    else:
-        timestamp_now = datetime.datetime.now() + datetime.timedelta(hours=12*i)
-    timestamp_now = timestamp_now.strftime("%Y-%m-%d %H:%M:%S")
-
-    random_temp = random.randint(20, 30)
-    random_humidity = random.randint(40, 60)
-    return timestamp_now, random_temp, random_humidity
-
-def get_new_live_data_offline(i=0, generate_past_data=False):
+def get_new_live_data_offline(ma_temp, ma_humid, i=0, generate_past_data=False):
     if generate_past_data:
         timestamp_now = datetime.datetime.now() - datetime.timedelta(seconds=i)
     else:
         timestamp_now = datetime.datetime.now()
     timestamp_now = timestamp_now.strftime("%Y-%m-%d %H:%M:%S")
+    
 
-    random_temp = random.randint(20, 30)
-    random_humidity = random.randint(40, 60)
-    return timestamp_now, random_temp, random_humidity
+    random_temp = round(random.uniform(20, 30), 1)
+    ma_temp.append(random_temp)
+    ma_temp = ma_temp[-7:]
+    ma_temp_avg = round(sum(ma_temp) / len(ma_temp), 1)
+
+    # add to ma_humid and only keep last 7 values
+    random_humidity = round(random.uniform(40, 60), 1)
+    ma_humid.append(random_humidity)
+    ma_humid = ma_humid[-7:]
+    ma_humid_avg = round(sum(ma_humid) / len(ma_humid), 1)
+
+    return timestamp_now, random_temp, ma_temp_avg, ma_temp, random_humidity, ma_humid_avg, ma_humid
+

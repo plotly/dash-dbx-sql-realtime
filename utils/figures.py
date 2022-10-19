@@ -1,51 +1,69 @@
-import plotly.express as px 
-
-def fig_style(fig):
-    name_list=["Temperature", "Humidity"]
-    for i,trace in enumerate (fig.data):
-        trace.update(name=name_list[i])
-
-    return (
-        fig.update_layout(
-            paper_bgcolor="#1c2022", 
-            plot_bgcolor="#1c2022", 
-            font_color="#A3AAB7", 
-            legend_traceorder="reversed", 
-            legend_title="",
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
-            )
-        )
-        .update_xaxes(gridcolor="#3F3F3F")
-        .update_yaxes(gridcolor="#3F3F3F")
-    )
-
-def fig_daily(df):
-    fig = px.line(
-        df,
-        x=df["EventTimestamp"],
-        y=[df["TempReading"], df["HumidityReading"]],
-        color_discrete_sequence=["#DB4C39", "#7976F7"],
-        markers=True,
-        labels= {"EventTimestamp": "Time", "HumidityReading": "Humidity", "TempReading": "Temperature"},
-        title= f"Daily Temperature & Humidity",
-    )
-    return fig_style(fig)
-
+import plotly.graph_objects as go
 
 def fig_live(df):
-    fig = px.line(
-        df,
-        x=df["TimestampSecond"],
-        y=[df["Temp_15s_Moving_Average"], df["Temp_60s_Moving_Average"]],
-        color_discrete_sequence=["#DB4C39", "#7976F7"],
-        markers=True,
-        labels= {"TimestampSecond": "Time"},
-        title= f"Live Temperature & Humidity",
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=df["TimestampSecond"], 
+            y=df["Temperature"], 
+            name="Temperature", 
+            mode='lines+markers',
+            line=dict(color="#E26F60", width=2),
+            hovertemplate="<b>%{y:.1f}°C</b>"
+        )
     )
-    return fig_style(fig)
+    fig.add_trace(
+        go.Scatter(
+            x=df["TimestampSecond"], 
+            y=df["MovingAverageTemperature"], 
+            name="Moving Average", 
+            showlegend=False,
+            mode='lines',
+            line=dict(color="#DB4C39", width=6),
+            hovertemplate="<b>%{y:.1f}°C</b>"
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=df["TimestampSecond"], 
+            y=df["Humidity"], 
+            name="Humidity", 
+            mode='lines+markers',
+            line=dict(color="#7976F7", width=2),
+            hovertemplate="<b>%{y:.1f}%</b>",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=df["TimestampSecond"], 
+            y=df["MovingAverageHumidity"], 
+            name="Moving Average", 
+            showlegend=False,
+            mode='lines',
+            line=dict(color="#5452AC", width=6),
+            hovertemplate="<b>%{y:.1f}%</b>",
+        )
+    )
+
+    fig.update_layout(
+        title={ "text": f"Live Temperature & Humidity", "x": 0.5, "xanchor": "center", "yanchor": "top"},
+        paper_bgcolor="#1c2022", 
+        plot_bgcolor="#1c2022", 
+        font_color="#A3AAB7", 
+        legend_traceorder="reversed", 
+        legend_title="",
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        ),
+        hovermode='x unified',
+    )
+    fig.update_xaxes(gridcolor="#3F3F3F", title="")
+    fig.update_yaxes(gridcolor="#3F3F3F", title="")
+    
+    return fig
 
