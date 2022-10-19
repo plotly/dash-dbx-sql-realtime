@@ -12,6 +12,7 @@ app = Dash(
     title="Realtime Dash-DBX", 
     update_title=None,
 )
+server = app.server
 
 app.layout = dmc.MantineProvider(
     withGlobalStyles=True,
