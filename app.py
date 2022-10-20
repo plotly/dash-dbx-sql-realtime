@@ -1,8 +1,11 @@
-from dash import Dash, Input, Output, State, callback
+from dash import Dash, Input, Output, State, callback, no_update
 from datetime import datetime
 
 import utils.components as components
-import utils.dbx_utils as utils
+
+from utils.dbx_utils import df_live, df_ma
+
+outside_index = df_ma.tail(1).index[0]
 
 app = Dash(
     __name__,
@@ -13,6 +16,7 @@ app = Dash(
 app.layout = components.layout
 server = app.server
 
+
 @callback(
     Output("live-data-graph", "extendData"),
     Output("live-data-information", "children"),
@@ -21,14 +25,40 @@ server = app.server
     State("store-data", "data"),
 )
 def update_live_data(n, storage):
-    new_date, new_temp, ma_temp_avg, ma_temp, new_humidity, ma_humid_avg, ma_humid  = utils.get_new_live_data_offline(storage["ma_temp"], storage["ma_humid"])
+    recent_live_index = df_live.tail(1).index[0]
+    recent_ma_index = df_ma.tail(1).index[0]
+    print("outside index is:", outside_index)
+    print(df_ma.tail(5))
+    print(f"recent_live_index: {recent_live_index}, old: {storage['df_live_index']}")
+    print(f"recent_ma_index: {recent_ma_index}, old: {storage['df_ma_index']} ")
+
+    if (storage["df_live_index"] == recent_live_index) or (storage["df_ma_index"] == recent_ma_index):
+        print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx No new data")
+        return no_update, no_update, no_update
+
+    print("NEEEEEEEEEEEEEEW DATAAAAAAAAAAAAAA works")
+
+    last_used_live_index = storage["df_live_index"]
+    new_date_live = df_live["EventTimestamp"].iloc[last_used_live_index:]
+    new_temp = df_live["TempReading"].iloc[last_used_live_index:]
+    new_hum = df_live["HumidityReading"].iloc[last_used_live_index:]
+
+    last_used_ma_index = storage["df_ma_index"]
+    new_date_ma = df_ma["TimestampSecond"].iloc[last_used_ma_index:]
+    ma_temp_avg = df_ma["Temperature_Moving_Average"].iloc[last_used_ma_index:]
+    ma_humid_avg = df_ma["Humidity_Moving_Average"].iloc[last_used_ma_index:]
+
+    # get rows in pandas 2 to 20
+
+    
+
     time = datetime.now().strftime("%H:%M:%S")
     return [
         dict(
-            x=[[new_date], [new_date], [new_date], [new_date]],
-            y=[[ma_temp_avg], [new_temp], [ma_humid_avg], [new_humidity]],
+            x=[new_date_ma, new_date_live, new_date_ma, new_date_live],
+            y=[ma_temp_avg, new_temp, ma_humid_avg, new_hum],
         ), [0, 1, 2, 3], 60
-    ], components.style_text(ma_temp_avg, ma_humid_avg, time), {"ma_temp": ma_temp, "ma_humid": ma_humid}
+    ], components.style_text(ma_temp_avg, ma_humid_avg, time), {"df_live_index": recent_live_index, "df_ma_index": recent_ma_index}
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)

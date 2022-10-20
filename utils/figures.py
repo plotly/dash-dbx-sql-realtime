@@ -1,12 +1,15 @@
 import plotly.graph_objects as go
 
-def fig_live(df):
+def fig_live(df_live, df_ma):
     fig = go.Figure()
 
+    df_live = df_live.tail(100)
+    df_ma = df_ma.tail(100)
+    
     fig.add_trace(
         go.Scatter(
-            x=df["TimestampSecond"], 
-            y=df["MovingAverageTemperature"], 
+            x=df_ma["TimestampSecond"], 
+            y=df_ma["Temperature_Moving_Average"], 
             name="MA", 
             mode='lines',
             line=dict(color="#DB4C39", width=6),
@@ -16,8 +19,8 @@ def fig_live(df):
 
     fig.add_trace(
         go.Scatter(
-            x=df["TimestampSecond"], 
-            y=df["Temperature"], 
+            x=df_live["EventTimestamp"], 
+            y=df_live["TempReading"], 
             name="Temperature", 
             mode='lines',
             line=dict(color="#E26F60", width=2, dash="dash"),
@@ -27,8 +30,8 @@ def fig_live(df):
 
     fig.add_trace(
         go.Scatter(
-            x=df["TimestampSecond"], 
-            y=df["MovingAverageHumidity"], 
+            x=df_ma["TimestampSecond"], 
+            y=df_ma["Humidity_Moving_Average"], 
             name="MA", 
             mode='lines',
             line=dict(color="#5452AC", width=6),
@@ -37,8 +40,8 @@ def fig_live(df):
     )
     fig.add_trace(
         go.Scatter(
-            x=df["TimestampSecond"], 
-            y=df["Humidity"], 
+            x=df_live["EventTimestamp"], 
+            y=df_live["HumidityReading"], 
             name="Humidity", 
             mode='lines',
             line=dict(color="#7976F7", width=2, dash="dash"),

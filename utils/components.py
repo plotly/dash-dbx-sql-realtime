@@ -3,13 +3,21 @@ from dash import html, dcc
 import dash_mantine_components as dmc
 import pandas as pd
 
-from utils.dbx_utils import get_new_live_data_offline
 import utils.figures as figs
-from constants import app_description
+from utils.dbx_utils import df_live, df_ma
 
-# from utils.dbx_utils import get_immediate_vals, get_moving_average
-# df_live= get_moving_average()
-# df_daily = get_immediate_vals()
+app_description = {
+    "headers": [
+        "Databricks as a Data Warehouse",
+        "Fast Query, Computation, & Retrieval of Databricks Data",
+        "Gateway to Sophisticated Data Science",
+    ],
+    "texts": [
+        "for simple to advanced python analytical workflows",
+        "at scale and in REAL TIME via Plotly Dash analytical web applications",
+        "for simple to advanced python analytical workflows",
+    ],
+}
 
 def layout():
     return dmc.MantineProvider(
@@ -21,7 +29,7 @@ def layout():
             create_text_columns(app_description, "description"),
             graph_view(),
             
-            dcc.Interval(id='live-data-interval', interval = 1100, n_intervals=0 ),
+            dcc.Interval(id='live-data-interval', interval = 5100, n_intervals=0 ),
         ])
     )
 )
@@ -76,12 +84,11 @@ def header(header_color, header_background_color="transparent"):
 
 
 def graph_view():
-    new_live_data, ma_temp, ma_humid = [], [], []
-    for i in range(60):
-        timestamp_now, random_temp, ma_temp_avg, ma_temp, random_humidity, ma_humid_avg, ma_humid = get_new_live_data_offline(ma_temp, ma_humid, i, True)
-        new_live_data.insert(0, [timestamp_now, random_temp, random_humidity, ma_temp_avg, ma_humid_avg])
-    df_live = pd.DataFrame(new_live_data, columns=["TimestampSecond", "Temperature", "Humidity", "MovingAverageTemperature", "MovingAverageHumidity"])
-    fig_live = figs.fig_live(df_live)
+    fig_live = figs.fig_live(df_live, df_ma)
+    recent_live_index = df_live.tail(1).index[0]
+    recent_ma_index = df_ma.tail(1).index[0]
+
+    print("================== app start:", recent_live_index, recent_ma_index)
 
     return html.Div(
         className="graph-view",
@@ -99,7 +106,7 @@ def graph_view():
                 
                 ## current-time information
                 html.Div( id='live-data-information'),
-                dcc.Store(id='store-data', data={"ma_temp": ma_temp, "ma_humid": ma_humid}),
+                dcc.Store(id='store-data', data={"df_live_index": recent_live_index, "df_ma_index": recent_ma_index}),
             ]
         )
     )

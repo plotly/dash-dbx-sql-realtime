@@ -1,27 +1,23 @@
 from databricks import sql
-import datetime, random
 
-from constants import (
-    SERVER_HOSTNAME,
-    HTTP_PATH,
-    ACCESS_TOKEN,
-    DB_NAME,
-    DEVICE_TABLE_SILVER,
-    DEVICE_TABLE_GOLD,
-    app_start_ts
-)
+DB_NAME = "raspberrypisim_db"
+DEVICE_TABLE_SILVER = "silver_sensors"
+DEVICE_TABLE_GOLD = "gold_sensors"
 
-random.seed(42)
+SERVER_HOSTNAME = "adb-3281572069146416.16.azuredatabricks.net"
+HTTP_PATH = "sql/protocolv1/o/3281572069146416/1019-170612-e4v063dv"
+ACCESS_TOKEN = "dapi17bc1f4f2256dca0991dd24fbaceae12-3"
 
-def get_immediate_vals():
+def get_live_data():
     connection0 = sql.connect(
         server_hostname=SERVER_HOSTNAME,
         http_path=HTTP_PATH,
         access_token=ACCESS_TOKEN,
     )
     cursor0 = connection0.cursor()
+
     cursor0.execute(
-        f"SELECT * FROM {DB_NAME}.{DEVICE_TABLE_SILVER} WHERE EventTimestamp >= '{app_start_ts}'::timestamp ORDER BY EventTimestamp ASC;"
+        f"SELECT * FROM {DB_NAME}.{DEVICE_TABLE_SILVER} ORDER BY EventTimestamp ASC;"
     )
     df = cursor0.fetchall_arrow()
     df = df.to_pandas()
@@ -37,7 +33,7 @@ def get_moving_average():
     )
     cursor1 = connection1.cursor()
     cursor1.execute(
-        f"SELECT * FROM {DB_NAME}.{DEVICE_TABLE_GOLD} WHERE TimestampSecond >= '{app_start_ts}'::timestamp ORDER BY TimestampSecond ASC;"
+        f"SELECT * FROM {DB_NAME}.{DEVICE_TABLE_GOLD} ORDER BY TimestampSecond ASC;"
     )
     df1 = cursor1.fetchall_arrow()
     df1 = df1.to_pandas()
@@ -45,24 +41,12 @@ def get_moving_average():
     connection1.close()
     return df1
 
-def get_new_live_data_offline(ma_temp, ma_humid, i=0, generate_past_data=False):
-    if generate_past_data:
-        timestamp_now = datetime.datetime.now() - datetime.timedelta(seconds=i)
-    else:
-        timestamp_now = datetime.datetime.now()
-    timestamp_now = timestamp_now.strftime("%Y-%m-%d %H:%M:%S")
-    
 
-    random_temp = round(random.uniform(20, 30), 1)
-    ma_temp.append(random_temp)
-    ma_temp = ma_temp[-7:]
-    ma_temp_avg = round(sum(ma_temp) / len(ma_temp), 1)
+print("here1")
+df_live = get_live_data()
+print("here2")
+df_ma = get_moving_average()
+print("here3")
 
-    # add to ma_humid and only keep last 7 values
-    random_humidity = round(random.uniform(40, 60), 1)
-    ma_humid.append(random_humidity)
-    ma_humid = ma_humid[-7:]
-    ma_humid_avg = round(sum(ma_humid) / len(ma_humid), 1)
-
-    return timestamp_now, random_temp, ma_temp_avg, ma_temp, random_humidity, ma_humid_avg, ma_humid
+print(len(df_ma), df_ma.tail())
 
