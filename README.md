@@ -5,6 +5,7 @@ If you are interested in using Dash with DBX on a large-scale Lakehouse, have a 
 
 ## Authors 
 [Sachin Seth (Solutions Architect, Virago Analytics)](https://www.linkedin.com/in/sachin-seth-8b7b7222b/)
+
 [Daniel Anton Suchy (Data Scientist, Plotly)](https://www.linkedin.com/in/daniel-anton-suchy/)
 
 
