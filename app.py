@@ -1,11 +1,7 @@
 from dash import Dash, Input, Output, State, callback, no_update
-from datetime import datetime
 
 import utils.components as components
-
 from utils.dbx_utils import df_live, df_ma
-
-outside_index = df_ma.tail(1).index[0]
 
 app = Dash(
     __name__,
@@ -27,16 +23,10 @@ server = app.server
 def update_live_data(n, storage):
     recent_live_index = df_live.tail(1).index[0]
     recent_ma_index = df_ma.tail(1).index[0]
-    print("outside index is:", outside_index)
-    print(df_ma.tail(5))
-    print(f"recent_live_index: {recent_live_index}, old: {storage['df_live_index']}")
-    print(f"recent_ma_index: {recent_ma_index}, old: {storage['df_ma_index']} ")
 
+    ## if there is no new data, skip the update
     if (storage["df_live_index"] == recent_live_index) or (storage["df_ma_index"] == recent_ma_index):
-        print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx No new data")
         return no_update, no_update, no_update
-
-    print("NEEEEEEEEEEEEEEW DATAAAAAAAAAAAAAA works")
 
     last_used_live_index = storage["df_live_index"]
     new_date_live = df_live["EventTimestamp"].iloc[last_used_live_index:]
@@ -45,20 +35,23 @@ def update_live_data(n, storage):
 
     last_used_ma_index = storage["df_ma_index"]
     new_date_ma = df_ma["TimestampSecond"].iloc[last_used_ma_index:]
-    ma_temp_avg = df_ma["Temperature_Moving_Average"].iloc[last_used_ma_index:]
-    ma_humid_avg = df_ma["Humidity_Moving_Average"].iloc[last_used_ma_index:]
+    new_temp_ma = df_ma["Temperature_Moving_Average"].iloc[last_used_ma_index:]
+    new_humid_ma = df_ma["Humidity_Moving_Average"].iloc[last_used_ma_index:]
 
-    # get rows in pandas 2 to 20
-
-    
-
-    time = datetime.now().strftime("%H:%M:%S")
-    return [
+    ## to save on bandwith and memory, we use 'extendData' feature instead of 'figure'
+    ## this way we only send the new data to the client, instead of the entire figure every update
+    ## we are adding 4 traces (temp, humid, temp_ma, humid_ma)
+    ## and we keep only the last 60 records on the graph
+    new_fig_data = [
         dict(
             x=[new_date_ma, new_date_live, new_date_ma, new_date_live],
-            y=[ma_temp_avg, new_temp, ma_humid_avg, new_hum],
+            y=[new_temp_ma, new_temp, new_humid_ma, new_hum],
         ), [0, 1, 2, 3], 60
-    ], components.style_text(ma_temp_avg, ma_humid_avg, time), {"df_live_index": recent_live_index, "df_ma_index": recent_ma_index}
+    ]
+    new_live_data_into = components.style_text(new_temp_ma, new_humid_ma)
+    new_stored_indexes = {"df_live_index": recent_live_index, "df_ma_index": recent_ma_index}
+
+    return new_fig_data, new_live_data_into, new_stored_indexes
 
 if __name__ == '__main__':
     app.run_server(debug=False)

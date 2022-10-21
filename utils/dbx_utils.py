@@ -1,12 +1,13 @@
+import os
 from databricks import sql
 
 DB_NAME = "raspberrypisim_db"
 DEVICE_TABLE_SILVER = "silver_sensors"
 DEVICE_TABLE_GOLD = "gold_sensors"
 
-SERVER_HOSTNAME = "adb-3281572069146416.16.azuredatabricks.net"
-HTTP_PATH = "sql/protocolv1/o/3281572069146416/1019-170612-e4v063dv"
-ACCESS_TOKEN = "dapi17bc1f4f2256dca0991dd24fbaceae12-3"
+SERVER_HOSTNAME = os.environ.get("SERVER_HOSTNAME")
+HTTP_PATH = os.environ.get("HTTP_PATH")
+ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN")
 
 def get_live_data():
     connection0 = sql.connect(
@@ -15,7 +16,6 @@ def get_live_data():
         access_token=ACCESS_TOKEN,
     )
     cursor0 = connection0.cursor()
-
     cursor0.execute(
         f"SELECT * FROM {DB_NAME}.{DEVICE_TABLE_SILVER} ORDER BY EventTimestamp ASC;"
     )
@@ -42,11 +42,5 @@ def get_moving_average():
     return df1
 
 
-print("here1")
 df_live = get_live_data()
-print("here2")
 df_ma = get_moving_average()
-print("here3")
-
-print(len(df_ma), df_ma.tail())
-

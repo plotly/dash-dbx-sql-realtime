@@ -1,7 +1,6 @@
-import dash
+import dash, datetime
 from dash import html, dcc
 import dash_mantine_components as dmc
-import pandas as pd
 
 import utils.figures as figs
 from utils.dbx_utils import df_live, df_ma
@@ -29,7 +28,7 @@ def layout():
             create_text_columns(app_description, "description"),
             graph_view(),
             
-            dcc.Interval(id='live-data-interval', interval = 5100, n_intervals=0 ),
+            dcc.Interval(id='live-data-interval', interval = 1000, n_intervals=0 ),
         ])
     )
 )
@@ -46,7 +45,6 @@ def create_text_columns(data_dict, class_name=None):
     )
 
 def header(header_color, header_background_color="transparent"):
-
     logo = html.Img(src=dash.get_asset_url("images/plotly-logo-dark-theme.png"))
     dash_logo = html.A(
         logo,
@@ -88,8 +86,6 @@ def graph_view():
     recent_live_index = df_live.tail(1).index[0]
     recent_ma_index = df_ma.tail(1).index[0]
 
-    print("================== app start:", recent_live_index, recent_ma_index)
-
     return html.Div(
         className="graph-view",
         children=html.Div(
@@ -111,7 +107,8 @@ def graph_view():
         )
     )
 
-def style_text(temperature, humidity, time):
+def style_text(temperature, humidity):
+    time = datetime.now().strftime("%H:%M:%S")
     return html.Div([
         html.Div(f"Temperature: {temperature}°C", style={"color": "#DB4C39", 'fontSize':32}),
         html.Div(f"{time} GMT", style={'color':'grey', 'fontSize':26}),
