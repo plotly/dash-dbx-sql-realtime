@@ -10,7 +10,7 @@ If you are interested in using Dash with DBX on a large-scale Lakehouse, have a 
 
 
 ## Links
-Medium Article - Coming soon
+[Medium Article](https://plotlygraphs.medium.com/269cb64b7575)
 
 [Plotly Dash App](https://dash-demo.plotly.host/dash-dbx-sql-realtime/)
 
