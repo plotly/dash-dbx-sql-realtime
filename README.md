@@ -3,6 +3,13 @@
 Plotly on Databricks Blog Series — Article #2 (October/22)
 If you are interested in using Dash with DBX on a large-scale Lakehouse, have a look at our other example [here](https://github.com/plotly/dash-dbx-sql). 
 
+<div align="center">
+  <a href="https://dash.plotly.com/project-maintenance">
+    <img src="https://dash.plotly.com/assets/images/maintained-by-plotly.png" width="400px" alt="Maintained by Plotly">
+  </a>
+</div>
+
+
 ## Authors 
 [Sachin Seth (Solutions Architect, Virago Analytics)](https://www.linkedin.com/in/sachin-seth-8b7b7222b/)
 
